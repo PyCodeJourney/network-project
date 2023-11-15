@@ -1,0 +1,81 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    <h1>{{ profile_owner }}</h1>
+    <div>
+        <div class="m-3">Followers: {{ followers_count }}</div>
+        <div class="m-3">Following: {{ followings_count }}</div>
+        {% if user.is_authenticated and not is_profile_owner %}
+            <div class="m-3">
+                {% if is_follower %}
+                    <form action="{% url 'unfollow' user_id=profile_owner.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-primary" type="submit">Unfollow</button>
+                    </form>
+                {% else %}
+                    <form action="{% url 'follow' user_id=profile_owner.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-primary" type="submit">Follow</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    {% for post in page_obj %}
+    <div id="{{ post.id }}" class="card m-3">
+        <div class="row g-0">
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title"><a href="{% url 'profile' user_id=post.user.id %}">{{ post.user }}</a></h5>
+                {% if user == post.user %}
+                    <button class="edit-button btn btn-link" data-post-id="{{ post.id }}">Edit</button>
+                {% endif %}
+                <div class="card-text post-content">{{ post.body }}</div>
+                <button class="like-button btn btn-primary m-2" data-post-id="{{ post.id }}">
+                    {% if user in post.likes.all %}
+                        Dislike
+                    {% else %}
+                        Like
+                    {% endif %}
+                </button>
+                <span class="like-count">{{ post.likes.count }}</span>
+                <div class="card-text"><small class="text-body-secondary">{{ post.timestamp }}</small></div>
+                <div class="edit-form" style="display: none;">
+                    <textarea class="form-control mb-1 new-content" rows="5">{{ post.body }}</textarea><br>
+                    <button class="save-button btn btn-primary" data-post-id="{{ post.id }}">Save Changes</button>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    {% endfor %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">first</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">previous</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+                </li>
+            {% endif %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a>
+            </li>
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">last</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endblock %}
